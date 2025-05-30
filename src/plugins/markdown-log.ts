@@ -1,15 +1,18 @@
-import { ActivePlugins } from "../plugin.ts";
+import type { PluginRegistration } from "../types.ts";
 
-const output = new TextEncoderStream();
-const writer = output.writable.getWriter();
-let outPromise: null | Promise<void> = null;
+/**
+ * Writes more-detailed http results as Markdown.
+ * Includes automatic Github Actions step summary integration.
+ */
+export const plugin: PluginRegistration = {
+  name: 'markdown-log',
+  create: () => {
+    const testRows = new Array<string>;
 
-const testRows = new Array<string>;
+    const output = new TextEncoderStream();
+    const writer = output.writable.getWriter();
+    let outPromise: null | Promise<void> = null;
 
-ActivePlugins.push({
-  name: 'Markdown Log',
-
-  open() {
     // Github provides a specific location to emit markdown to
     const summaryPath = Deno.env.get('GITHUB_STEP_SUMMARY');
     if (summaryPath) {
@@ -20,80 +23,82 @@ ActivePlugins.push({
         preventClose: true,
       });
     }
-    return Promise.resolve();
-  },
 
-  async close() {
-    await writer.close();
-    await outPromise;
-  },
-
-  async emitLog(text) {
-    await writer.write(text.split('\n').map(x => `> ${x}`).join('\n') + '\n\n');
-  },
-
-  async wrapStep(name, callable) {
-    await writer.write(`## ${name}\n`);
-    try {
-      await callable();
-    } finally {
-      if (testRows.length) {
-        await writer.write(['',
-          `| Test Name | Result |`,
-          `| --- | --- |`,
-          ...testRows,
-        '', ''].join('\n'));
-        testRows.length = 0;
+    async function writeHttpRecord(label: string, bodyMarkdown: string | undefined, expanded: boolean) {
+      if (expanded && bodyMarkdown) {
+        await writer.write(`> ${label}\n\n`);
+        await writer.write(bodyMarkdown);
+      } else if (bodyMarkdown) {
+        await writer.write(`<details><summary>${label}</summary><p>\n\n`);
+        await writer.write(bodyMarkdown);
+        await writer.write(`</p></details>\n\n`);
+      } else {
+        await writer.write(`> ${label}\n\n`);
       }
     }
+
+    return {
+      async close() {
+        await writer.close();
+        await outPromise;
+      },
+
+      async emitLog(text) {
+        await writer.write(text.split('\n').map(x => `> ${x}`).join('\n') + '\n\n');
+      },
+
+      async wrapStep(name, callable) {
+        await writer.write(`## ${name}\n`);
+        try {
+          await callable();
+        } finally {
+          if (testRows.length) {
+            await writer.write(['',
+              `| Test Name | Result |`,
+              `| --- | --- |`,
+              ...testRows,
+            '', ''].join('\n'));
+            testRows.length = 0;
+          }
+        }
+      },
+
+      async wrapTest(name, callable) {
+        try {
+          await callable();
+          testRows.push(`| ${name} | ✅ Pass |`);
+        } catch (thrown) {
+          const err = thrown as Error;
+          testRows.push(`| ${name} | ❌ ${err.message} |`);
+          throw thrown;
+        }
+      },
+
+      async wrapFetch(callable, req) {
+
+        // Try buffering and recording the request texts
+        const interceptedReq = await interceptTextBody(req);
+        if (interceptedReq) {
+          req = new Request(req, { body: interceptedReq.text });
+        }
+
+        await writeHttpRecord(`${req.method} <code>${req.url}</code>`, interceptedReq?.markdown, false);
+        const resp = await callable(req);
+
+        // Try buffering and recording the response texts
+        const interceptedResp = await interceptTextBody(resp);
+
+        await writeHttpRecord(`${resp.status} ${resp.ok ? '' : '⚠'} <code>${resp.statusText}</code>`, interceptedResp?.markdown, !resp.ok);
+
+        if (interceptedResp) {
+          return new Response(interceptedResp.text, resp);
+        }
+        return resp;
+      },
+
+    };
   },
-
-  async wrapTest(name, callable) {
-    try {
-      await callable();
-      testRows.push(`| ${name} | ✅ Pass |`);
-    } catch (thrown) {
-      const err = thrown as Error;
-      testRows.push(`| ${name} | ❌ ${err.message} |`);
-      throw thrown;
-    }
-  },
-
-  async wrapFetch(callable, req) {
-
-    // Try buffering and recording the request texts
-    const interceptedReq = await interceptTextBody(req);
-    if (interceptedReq) {
-      req = new Request(req, { body: interceptedReq.text });
-    }
-
-    await writeHttpRecord(`${req.method} <code>${req.url}</code>`, interceptedReq?.markdown, false);
-    const resp = await callable(req);
-
-    // Try buffering and recording the response texts
-    const interceptedResp = await interceptTextBody(resp);
-
-    await writeHttpRecord(`${resp.status} ${resp.ok ? '' : '⚠'} <code>${resp.statusText}</code>`, interceptedResp?.markdown, !resp.ok);
-
-    if (interceptedResp) {
-      return new Response(interceptedResp.text, resp);
-    }
-    return resp;
-  },
-});
-
-async function writeHttpRecord(label: string, bodyMarkdown: string | undefined, expanded: boolean) {
-  if (expanded && bodyMarkdown) {
-    await writer.write(`> ${label}\n\n`);
-    await writer.write(bodyMarkdown);
-  } else if (bodyMarkdown) {
-    await writer.write(`<details><summary>${label}</summary><p>\n\n`);
-    await writer.write(bodyMarkdown);
-    await writer.write(`</p></details>\n\n`);
-  } else {
-    await writer.write(`> ${label}\n\n`);
-  }
-}
+};
 
 /** Accepts a Request or Response and possibly buffers the body from it. */
 async function interceptTextBody(message: {

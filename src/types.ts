@@ -1,19 +1,19 @@
 /** Interface used by generated wrapper code */
 export interface HttpScriptApi {
-  addStep: (opts: StepOpts) => void;
-  runNow: () => Promise<void>;
+  addStep(opts: StepOpts): void;
+  addPlugin(plugin: PluginRegistration | { plugin: PluginRegistration }): void;
+  runNow(): Promise<void>;
 };
 
 /** The client interface that embedded scripts can reference */
 export interface Client {
   // Standard .http API
   global: Map<string,string>;
-  assert: (expr: unknown, msg?: string) => asserts expr;
-  log: (text: string) => void;
-  test: (title: string, callback: () => void) => void;
-  // Extra API for our generated code
-  close: () => Promise<void>;
-  performStep: (opts: StepOpts) => Promise<void>;
+  assert(expr: unknown, msg?: string): asserts expr;
+  log(text: string): void;
+  test(title: string, callback: () => void): void;
+  // Extra API for our runtime
+  performStep(opts: StepOpts): Promise<void>;
 };
 
 /** An http request definition parsed out of a .http file */
@@ -37,12 +37,16 @@ export type StepOpts = {
   postScript?: (client: Client, request: HttpRequestPost, response: HttpResponse) => void | Promise<void>;
 };
 
-/** Interface implemented by http-file plugins */
-export type ClientPlugin = {
+/** Interface implemented by http-file plugins at the top level */
+export interface PluginRegistration {
   name: string;
   denoFlags?: Array<string>;
-  open?: (client: Client) => Promise<void>;
-  close?: () => Promise<void>;
+  create(client: Client): PluginInstance | Promise<PluginInstance>;
+};
+
+/** Interface implemented by http-file plugins in the context of a particular Client */
+export interface PluginInstance {
+  close?: () => void | Promise<void>;
   emitLog?: (text: string) => void | Promise<void>;
   wrapFile?: (name: string, callable: () => Promise<void>) => Promise<void>;
   wrapStep?: (name: string, callable: () => Promise<void>) => Promise<void>;

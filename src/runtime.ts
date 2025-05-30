@@ -1,58 +1,72 @@
 import { parseArgs } from '@std/cli/parse-args';
 
-import * as plugin from "./plugin.ts";
-import type { HeaderPost, HeaderPre, Client, HttpRequestPre, HttpScriptApi, StepOpts } from './types.ts';
+import type { HeaderPost, HeaderPre, Client, HttpRequestPre, HttpScriptApi, StepOpts, PluginRegistration } from './types.ts';
+import { HooksManager } from "./hooks.ts";
 export type { Client };
 
 export class HttpScript implements HttpScriptApi {
-  private steps: Array<StepOpts> = [];
+  public steps: Array<StepOpts> = [];
+  public plugins: Array<PluginRegistration> = [];
   constructor(
     public readonly name: string,
   ) {}
   addStep(opts: StepOpts) {
     this.steps.push(opts);
   }
+  /**
+   * Accepts plugin registrations directly as well as via 'plugin' imports
+   * @example script.addPlugin(MyPlugin);
+   * @example script.addPlugin(await import('./my-plugin.ts'));
+   */
+  addPlugin(plugin: PluginRegistration | { plugin: PluginRegistration }) {
+    this.plugins.push('plugin' in plugin ? plugin.plugin : plugin);
+  }
   async runNow(): Promise<void> {
     const client = new HttpClient;
-    await plugin.runWrapFile(this.name, async () => {
-      try {
-        await client.open();
-        for (const step of this.steps) {
-          await client.performStep(step);
-        }
-      } finally {
-        await client.close();
-      }
-    });
+    await client.runScript(this);
   }
 }
 
 export class HttpClient implements Client {
-  global: Map<string,string> = new Map;
+  public readonly global: Map<string,string> = new Map;
+
+  private readonly hooks: HooksManager;
+  constructor() {
+    this.hooks = new HooksManager(this);
+  }
 
   private pendingTests: Array<{
     title: string;
     callback: () => void | Promise<void>;
   }> = [];
 
-  async open() {
+  async runScript(script: HttpScript): Promise<void> {
+    await this.hooks.runWrapFile(script.name, async () => {
+      try {
+        await this.setup();
+        await this.hooks.createPlugins(script.plugins);
+        for (const step of script.steps) {
+          await this.performStep(step);
+        }
+      } finally {
+        await this.hooks.close();
+      }
+    });
+  }
+
+  async setup() {
     if (Deno.args.includes('--from-env')) {
       await this.setupFromEnv(Deno.env);
     } else {
       await this.setupFromArgs(Deno.args);
     }
-    // console.error(`Active Plugins: [${plugin.ActivePlugins.map(x => x.name).join(', ')}]`);
-    await plugin.open(this);
-  }
-  async close() {
-    await plugin.close();
   }
 
   async performStep(opts: StepOpts) {
     this.pendingTests.length = 0;
-    await plugin.runWrapStep(opts.name, async () => {
+    await this.hooks.runWrapStep(opts.name, async () => {
       const environment = this.global;
-      const variables = new Map<string,string>;
+      const variables = new Map<string,string>();
 
       function replaceVars(text: string) {
         return text.replaceAll(/{{([^}]+)}}/g, (capture, varName) => {
@@ -95,7 +109,7 @@ export class HttpClient implements Client {
         body: requestPre.body.tryGetSubstituted(),
       };
 
-      const resp = await plugin.runWrapFetch(new Request(rendered.url, {
+      const resp = await this.hooks.runWrapFetch(new Request(rendered.url, {
         method: rendered.method,
         headers: rendered.headers,
         body: rendered.body || null,
@@ -138,7 +152,7 @@ export class HttpClient implements Client {
       const testFailures = new Array<unknown>;
       for (const test of this.pendingTests) {
         try {
-          await plugin.runWrapTest(test.title, test.callback);
+          await this.hooks.runWrapTest(test.title, test.callback);
         } catch (thrown) {
           testFailures.push(thrown);
         }
@@ -150,7 +164,7 @@ export class HttpClient implements Client {
   }
 
   async log(text: string) {
-    await plugin.emitLog(text);
+    await this.hooks.emitLog(text);
   }
 
   test(title: string, callback: () => void | Promise<void>) {
