@@ -22,6 +22,8 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
   const lineBuffer = new Array<string>;
 
   for await (const line of stream.pipeThrough(new TextLineStream())) {
+    // for debugging the state machine:
+    // console.log(currentMode, currentBlock, line);
 
     if (currentMode == 'prescript') {
       if (line == '%}') {
@@ -45,7 +47,12 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
 
     if (line.startsWith('###')) {
       if (currentBlock.url) {
+        if (currentMode == 'body' && lineBuffer.length) {
+          currentBlock.body = lineBuffer.join('\n');
+          lineBuffer.length = 0;
+        }
         yield currentBlock;
+
         currentBlock = emptyBlock(`Request #${++idx}`);
         currentMode = 'init';
         headersDone = false;
@@ -63,12 +70,13 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
       continue;
     }
 
+    // comments
     if (line.startsWith('//') || line.startsWith('#')) {
       continue;
     }
 
     if (!currentBlock.method) {
-      if (line.split(' ').length >= 2) { //sometimes has HTTP/1.1
+      if (line.split(' ').length >= 2) { // sometimes has HTTP/1.1
         currentBlock.method = line.split(' ')[0];
         currentBlock.url = line.split(' ')[1];
         continue;
@@ -112,6 +120,10 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
     break;
   }
   if (currentBlock.url) {
+    if (currentMode == 'body' && lineBuffer.length) {
+      currentBlock.body = lineBuffer.join('\n');
+      lineBuffer.length = 0;
+    }
     yield currentBlock;
   }
 }
