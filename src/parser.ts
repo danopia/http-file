@@ -74,6 +74,10 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
         continue;
       }
       if (!line) continue;
+      // Simplified syntax for GET requests
+      currentBlock.method = 'GET';
+      currentBlock.url = line;
+      continue;
     }
 
     if (!headersDone) {
