@@ -60,9 +60,9 @@ export async function* renderHttpScript(
     `#!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net`,
     `// deno-lint-ignore-file no-unused-vars`,
     `import { HttpScript, type Client, wait } from '${importPath}/runtime.ts';`,
-    ...plugins.map(x => `import '${x.includes('/') ? x : `${importPath}/plugins/${x}.ts`}'`),
+    ...plugins.map(x => `import '${x.includes('/') ? x : `${importPath}/plugins/${x}.ts`}';`),
     '',
-    `export const script = new HttpScript(${JSON.stringify(scriptName)});`,
+    `const script = new HttpScript(${JSON.stringify(scriptName)});`,
   ].join('\n')+'\n\n';
 
   for await (const block of blocks) {
@@ -95,6 +95,7 @@ export async function* renderHttpScript(
   }
 
   yield [
+    `export default script;`,
     `if (import.meta.main) {`,
     `  await script.runNow();`,
     `}`,
