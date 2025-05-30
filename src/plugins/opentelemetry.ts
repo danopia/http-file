@@ -29,16 +29,16 @@ ActivePlugins.push({
       }
     }),
 
-  wrapStep: (name, callable) => stepTracer
-    .asyncSpan(`step: ${name}`, {
-      attributes: {
-        'httpfile.step_name': name,
-      },
-    }, async () => {
-      await callable();
-      // We force a gap between steps so they can't overlap
-      await new Promise(ok => setTimeout(ok, 100));
-    }),
+  wrapStep: async (name, callable) => {
+    await stepTracer
+      .asyncSpan(`step: ${name}`, {
+        attributes: {
+          'httpfile.step_name': name,
+        },
+      }, callable);
+    // We add a brief gap between steps so their spans won't be at risk of overlapping
+    await new Promise(ok => setTimeout(ok, 10));
+  },
 
   wrapTest: (name, callable) => testTracer
     .asyncSpan(`test: ${name}`, {
