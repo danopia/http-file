@@ -1,6 +1,6 @@
 {
   "name": "@danopia/http-file",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "license": "MIT",
   "imports": {
     "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.10",
@@ -13,7 +13,6 @@
     "./plugins/opentelemetry.ts": "./src/plugins/opentelemetry.ts",
     "./compiler.ts": "./src/compiler.ts",
     "./parser.ts": "./src/parser.ts",
-    "./plugin.ts": "./src/plugin.ts",
     "./runtime.ts": "./src/runtime.ts",
     "./types.ts": "./src/types.ts"
   },
