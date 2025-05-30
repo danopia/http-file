@@ -1,9 +1,33 @@
 import { parseArgs } from '@std/cli/parse-args';
 
 import * as plugin from "./plugin.ts";
-import type { HeaderPost, HeaderPre, HttpClientApi, HttpRequestPre, StepOpts } from './types.ts';
+import type { HeaderPost, HeaderPre, Client, HttpRequestPre, HttpScriptApi, StepOpts } from './types.ts';
+export type { Client };
 
-export class HttpClient implements HttpClientApi {
+export class HttpScript implements HttpScriptApi {
+  private steps: Array<StepOpts> = [];
+  constructor(
+    public readonly name: string,
+  ) {}
+  addStep(opts: StepOpts) {
+    this.steps.push(opts);
+  }
+  async runNow(): Promise<void> {
+    const client = new HttpClient;
+    await plugin.runWrapFile(this.name, async () => {
+      try {
+        await client.open();
+        for (const step of this.steps) {
+          await client.performStep(step);
+        }
+      } finally {
+        await client.close();
+      }
+    });
+  }
+}
+
+export class HttpClient implements Client {
   global: Map<string,string> = new Map;
 
   private pendingTests: Array<{
@@ -11,23 +35,13 @@ export class HttpClient implements HttpClientApi {
     callback: () => void | Promise<void>;
   }> = [];
 
-  static async run(callable: (client: HttpClient) => Promise<void>) {
-    const client = new HttpClient();
-    await client.open();
-    try {
-      await plugin.runWrapFile(callable.bind(null, client));
-    } finally {
-      await client.close();
-    }
-  }
-
   async open() {
     if (Deno.args.includes('--from-env')) {
       await this.setupFromEnv(Deno.env);
     } else {
       await this.setupFromArgs(Deno.args);
     }
-    console.error(`Active Plugins: [${plugin.ActivePlugins.map(x => x.name).join(', ')}]`);
+    // console.error(`Active Plugins: [${plugin.ActivePlugins.map(x => x.name).join(', ')}]`);
     await plugin.open(this);
   }
   async close() {
@@ -72,7 +86,7 @@ export class HttpClient implements HttpClientApi {
           findByName: (name) => headersPre.find(x => x.name == name) ?? null,
         },
       };
-      await opts.preScript?.(requestPre);
+      await opts.preScript?.(this, requestPre);
 
       const rendered = {
         method: requestPre.method,
@@ -89,10 +103,10 @@ export class HttpClient implements HttpClientApi {
 
       const respText = await resp.text();
       const respBody = respText.startsWith('{') ? JSON.parse(respText) : respText;
-      // console.log(respBody);
+      // console.error(respBody);
       if (!resp.ok) {
-        console.log(typeof respBody == 'string' ? respBody.slice(0, 255) : respBody);
-        console.log(``);
+        console.error(typeof respBody == 'string' ? respBody.slice(0, 255) : respBody);
+        console.error(``);
       }
 
       const [mimeType, extraText] = resp.headers.get('content-type')?.split(';') ?? [];
@@ -101,7 +115,7 @@ export class HttpClient implements HttpClientApi {
         name: pair[0],
         value: () => pair[1],
       }));
-      await opts.postScript?.({
+      await opts.postScript?.(this, {
         environment,
         variables,
         method: rendered.method,

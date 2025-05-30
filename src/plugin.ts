@@ -1,4 +1,4 @@
-import type { ClientPlugin, HttpClientApi } from "./types.ts";
+import type { ClientPlugin, Client } from "./types.ts";
 
 // Rough attempt to allow plugins registering across versions
 const pluginSymbol: unique symbol = Symbol.for('@danopia/http-file/active-plugins');
@@ -6,7 +6,7 @@ export const ActivePlugins: Array<ClientPlugin> = (
   globalThis as unknown as {[pluginSymbol]: Array<ClientPlugin>}
 )[pluginSymbol] ??= new Array<ClientPlugin>();
 
-export async function open(client: HttpClientApi): Promise<void> {
+export async function open(client: Client): Promise<void> {
   for (const hooks of ActivePlugins) {
     await hooks.open?.(client);
   }
@@ -25,10 +25,10 @@ export async function emitLog(text: string) {
   }
 }
 
-export async function runWrapFile(callable: () => Promise<void>): Promise<void> {
+export async function runWrapFile(name: string, callable: () => Promise<void>): Promise<void> {
   for (const hooks of ActivePlugins) {
     if (hooks.wrapFile) {
-      callable = hooks.wrapFile.bind(hooks, callable);
+      callable = hooks.wrapFile.bind(hooks, name, callable);
     }
   }
   return await callable();

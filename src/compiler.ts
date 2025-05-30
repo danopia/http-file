@@ -19,6 +19,7 @@ if (import.meta.main) {
  */
 export async function compileHttpFile(opts: {
   inputPath: string;
+  scriptName?: string;
   importPath?: string | null;
   outputPath: string;
   plugins?: string[] | null;
@@ -32,7 +33,12 @@ export async function compileHttpFile(opts: {
   const importPath = opts.importPath ?? import.meta.url
     .replace(/^https:\/\/jsr.io\/([^/]+\/[^/]+)\/([^/]+)\/src/, (_, pkg, ver) => `jsr:${pkg}@${ver}`)
     .replace(/\/[^/]+$/, '');
-  const scriptStream = renderHttpScript(blockStream, importPath, opts.plugins ?? ['console-log']);
+
+  const scriptStream = renderHttpScript(
+    opts.scriptName ?? opts.inputPath,
+    blockStream,
+    importPath,
+    opts.plugins ?? ['console-log']);
 
   const outputStream = ReadableStream
     .from(scriptStream)
@@ -45,6 +51,7 @@ export async function compileHttpFile(opts: {
  * Given a stream of requests as HttpBlock structures, emits a stream of typescript source.
  */
 export async function* renderHttpScript(
+  scriptName: string,
   blocks: AsyncGenerator<HttpBlock>,
   importPath: string,
   plugins: string[],
@@ -52,13 +59,14 @@ export async function* renderHttpScript(
   yield [
     `#!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net`,
     `// deno-lint-ignore-file no-unused-vars`,
-    `import { HttpClient, wait } from '${importPath}/runtime.ts';`,
+    `import { HttpScript, type Client, wait } from '${importPath}/runtime.ts';`,
     ...plugins.map(x => `import '${x.includes('/') ? x : `${importPath}/plugins/${x}.ts`}'`),
-    `await HttpClient.run(async (client: HttpClient) => {`,
+    '',
+    `export const script = new HttpScript(${JSON.stringify(scriptName)});`,
   ].join('\n')+'\n\n';
 
   for await (const block of blocks) {
-    yield `await client.performStep({\n`;
+    yield `script.addStep({\n`;
     yield `  name: ${JSON.stringify(block.name)},\n`;
     yield `  method: ${JSON.stringify(block.method)},\n`;
     yield `  url: ${JSON.stringify(block.url)},\n`;
@@ -70,22 +78,27 @@ export async function* renderHttpScript(
     if (block.body) {
       yield `  body: ${JSON.stringify(block.body)},\n`;
     }
+    // The client param is explicitly typed so that Typescript allows `client.assert()`
     if (block.preScript) {
       const transformed = transformScript(block.preScript);
-      yield `  ${transformed.includes('await ') ? 'async ' : ''}preScript(request) {\n`;
+      yield `  ${transformed.includes('await ') ? 'async ' : ''}preScript(client: Client, request) {\n`;
       yield transformed+'\n';
       yield `  },\n`;
     }
     if (block.postScript) {
       const transformed = transformScript(block.postScript);
-      yield `  ${transformed.includes('await ') ? 'async ' : ''}postScript(request, response) {\n`;
+      yield `  ${transformed.includes('await ') ? 'async ' : ''}postScript(client: Client, request, response) {\n`;
       yield transformed+'\n';
       yield `  },\n`;
     }
     yield `});\n\n`;
   }
 
-  yield `});\n`;
+  yield [
+    `if (import.meta.main) {`,
+    `  await script.runNow();`,
+    `}`,
+  ].join('\n')+'\n';
 }
 
 function transformScript(text: string) {

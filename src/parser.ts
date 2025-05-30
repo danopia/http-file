@@ -104,7 +104,7 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
     }
 
     if (!line) continue;
-    console.log('TODO:', { line, currentBlock, currentMode, lineBuffer });
+    console.error('TODO:', { line, currentBlock, currentMode, lineBuffer });
     break;
   }
   if (currentBlock.url) {

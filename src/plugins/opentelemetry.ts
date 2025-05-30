@@ -8,9 +8,10 @@ const testTracer = new LogicTracer({ name: 'http.test' });
 
 ActivePlugins.push({
   name: 'OpenTelemetry',
+  denoFlags: ['--unstable-otel'],
 
-  wrapFile: (callable) => fileTracer
-    .asyncSpan(Deno.env.get('OTEL_ROOT_SPAN_NAME') ?? 'execution', {}, async (span) => {
+  wrapFile: (name, callable) => fileTracer
+    .asyncSpan(name, {}, async (span) => {
       await callable();
 
       // Enable printing a trace viewer deeplink if configured
