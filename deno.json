@@ -5,8 +5,6 @@
   "imports": {
     "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.10",
     "@std/cli": "jsr:@std/cli@^1",
-    "@std/fs": "jsr:@std/fs@^1",
-    "@std/path": "jsr:@std/path@^1",
     "@std/streams": "jsr:@std/streams@^1"
   },
   "exports": {

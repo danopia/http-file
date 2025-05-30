@@ -13,15 +13,14 @@ function emptyBlock(name: string): HttpBlock {
   };
 }
 
-export async function* parseHttpFile(path: string): AsyncGenerator<HttpBlock> {
+export async function* parseHttpSyntax(stream: ReadableStream<Uint8Array>): AsyncGenerator<HttpBlock> {
   let idx = 0;
   let currentBlock = emptyBlock(`#${++idx}`);
   let currentMode: 'init' | 'headers' | 'body' | 'prescript' | 'postscript' = 'init';
   let headersDone = false;
   const lineBuffer = new Array<string>;
 
-  await using file = await Deno.open(path, { read: true });
-  for await (const line of file.readable
+  for await (const line of stream
     .pipeThrough(new TextDecoderStream())
     .pipeThrough(new TextLineStream())) {
 

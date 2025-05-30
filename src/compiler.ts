@@ -1,5 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read=. --allow-write=.
-import { parseHttpFile } from "./parser.ts";
+import { parseHttpSyntax } from "./parser.ts";
 import type { HttpBlock } from "./types.ts";
 
 if (import.meta.main) {
@@ -11,19 +11,28 @@ if (import.meta.main) {
   });
 }
 
+/**
+ * Reads the .http file and writes a compiled .ts file.
+ * `importPath` defaults to where the compiler is imported from.
+ * `plugins` defaults to `['console-log']`.
+ * For more control over the input and output, see {@link renderHttpScript}.
+ */
 export async function compileHttpFile(opts: {
   inputPath: string;
-  importPath?: string;
+  importPath?: string | null;
   outputPath: string;
   plugins?: string[] | null;
 }) {
-  const blockStream = parseHttpFile(opts.inputPath);
+  await using inputFile = await Deno.open(opts.inputPath, { read: true });
+  const blockStream = parseHttpSyntax(inputFile.readable);
+
   // const fileDepth = path.split('/').length - 1;
   // const rootPath = new Array(fileDepth).fill('..').join('/');
   const importPath = opts.importPath ?? import.meta.url
     .replace(/^https:\/\/jsr.io\/([^/]+\/[^/]+)\/([^/]+)\/src/, (_, pkg, ver) => `jsr:${pkg}@${ver}`)
     .replace(/\/[^/]+$/, '');
   const scriptStream = renderHttpScript(blockStream, importPath, opts.plugins ?? ['console-log']);
+
   const outputStream = ReadableStream
     .from(scriptStream)
     .pipeThrough(new TextEncoderStream());
@@ -31,7 +40,10 @@ export async function compileHttpFile(opts: {
   console.error(`Wrote ${opts.outputPath}`);
 }
 
-async function* renderHttpScript(
+/**
+ * Given a stream of requests as HttpBlock structures, emits a stream of typescript source.
+ */
+export async function* renderHttpScript(
   blocks: AsyncGenerator<HttpBlock>,
   importPath: string,
   plugins: string[],
