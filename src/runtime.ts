@@ -1,4 +1,3 @@
-import { assert } from '@std/assert/assert';
 import { parseArgs } from '@std/cli/parse-args';
 
 import * as plugin from "./plugin.ts";
@@ -6,7 +5,6 @@ import type { HeaderPost, HeaderPre, HttpClientApi, HttpRequestPre, StepOpts } f
 
 export class HttpClient implements HttpClientApi {
   global: Map<string,string> = new Map;
-  assert: typeof assert = assert;
 
   private pendingTests: Array<{
     title: string;
@@ -145,6 +143,12 @@ export class HttpClient implements HttpClientApi {
     this.pendingTests.push({ title, callback });
   }
 
+  assert(expr: unknown, msg = ""): asserts expr {
+    if (!expr) {
+      throw new AssertionError(msg);
+    }
+  }
+
   async loadEnvFile(filePath: string, envKey: string) {
     const envDict = await Deno.readTextFile(filePath).then(x => JSON.parse(x));
     if (!(envKey in envDict)) {
@@ -189,4 +193,11 @@ export class HttpClient implements HttpClientApi {
 export function wait(seconds: number): Promise<void> {
   console.error(`Waiting ${seconds} seconds...`);
   return new Promise<void>(ok => setTimeout(ok, seconds * 1000));
+}
+
+export class AssertionError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "AssertionError";
+  }
 }

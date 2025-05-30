@@ -4,7 +4,6 @@
   "license": "MIT",
   "imports": {
     "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.10",
-    "@std/assert": "jsr:@std/assert@^1",
     "@std/cli": "jsr:@std/cli@^1",
     "@std/fs": "jsr:@std/fs@^1",
     "@std/path": "jsr:@std/path@^1",
