@@ -10,7 +10,20 @@ ActivePlugins.push({
   name: 'OpenTelemetry',
 
   wrapFile: (callable) => fileTracer
-    .asyncSpan(Deno.env.get('OTEL_ROOT_SPAN_NAME') ?? 'execution', {}, callable),
+    .asyncSpan(Deno.env.get('OTEL_ROOT_SPAN_NAME') ?? 'execution', {}, async (span) => {
+      await callable();
+
+      // Enable printing a trace viewer deeplink if configured
+      const urlTemplate = Deno.env.get('OTEL_TRACE_URL_TEMPLATE');
+      if (urlTemplate && span) {
+        const ctx = span.spanContext();
+        const fullUrl = urlTemplate
+          .replaceAll('{TraceId}', ctx.traceId)
+          .replaceAll('{SpanId}', ctx.spanId);
+        // TODO: should this be sent via client.log()?
+        console.log(`\nTracing of this script run can be viewed at ${fullUrl}\n`);
+      }
+    }),
 
   wrapStep: (name, callable) => stepTracer
     .asyncSpan(`step: ${name}`, {
