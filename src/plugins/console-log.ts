@@ -5,7 +5,7 @@ ActivePlugins.push({
   name: 'Console Log',
 
   emitLog(text) {
-    console.log(`    ${text}`);
+    console.log(text.split('\n').map(x => `    ${x}`).join('\n'));
   },
 
   async wrapStep(name, callable) {

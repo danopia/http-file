@@ -10,7 +10,19 @@ Accept: text/plain
     });
 
     client.global.set("ipAddress", response.body);
-    client.log(`My IP address is ${response.body}`);
+%}
+
+
+### Format IP Address with cowsay
+GET https://da.gd/cow?say=My+IP+address+is+{{ipAddress}}
+Accept: text/plain
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.log(response.body);
 %}
 
 
@@ -23,6 +35,7 @@ Accept: text/plain
         client.assert(response.status === 200, "Response status is not 200");
     });
     client.test("Server received our specified headers", function() {
+        client.assert(typeof response.body == 'string', "Response body is not a string");
         client.assert(response.body.includes('text/plain'), "Server didn't receive Accept header");
     });
 
