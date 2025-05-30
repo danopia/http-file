@@ -17,11 +17,15 @@ ActivePlugins.push({
       const urlTemplate = Deno.env.get('OTEL_TRACE_URL_TEMPLATE');
       if (urlTemplate && span) {
         const ctx = span.spanContext();
-        const fullUrl = urlTemplate
-          .replaceAll('{TraceId}', ctx.traceId)
-          .replaceAll('{SpanId}', ctx.spanId);
-        // TODO: should this be sent via client.log()?
-        console.log(`\nTracing of this script run can be viewed at ${fullUrl}\n`);
+        if (ctx.traceId == '00000000000000000000000000000000') {
+          console.log(`\nTracing of this script run was not recorded.\n`);
+        } else {
+          const fullUrl = urlTemplate
+            .replaceAll('{TraceId}', ctx.traceId)
+            .replaceAll('{SpanId}', ctx.spanId);
+          // TODO: should this be sent via client.log()?
+          console.log(`\nTracing of this script run will be available at ${fullUrl}\n`);
+        }
       }
     }),
 
