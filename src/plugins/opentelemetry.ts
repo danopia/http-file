@@ -20,7 +20,7 @@ ActivePlugins.push({
     }, async () => {
       await callable();
       // We force a gap between steps so they can't overlap
-      await new Promise(ok => setTimeout(ok, 50));
+      await new Promise(ok => setTimeout(ok, 100));
     }),
 
   wrapTest: (name, callable) => testTracer
