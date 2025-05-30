@@ -13,16 +13,15 @@ function emptyBlock(name: string): HttpBlock {
   };
 }
 
-export async function* parseHttpSyntax(stream: ReadableStream<Uint8Array>): AsyncGenerator<HttpBlock> {
+/** Process a streaming string containing an .http file, and produces a stream of parsed HTTP request descriptions */
+export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGenerator<HttpBlock> {
   let idx = 0;
-  let currentBlock = emptyBlock(`#${++idx}`);
+  let currentBlock = emptyBlock(`Request #${++idx}`);
   let currentMode: 'init' | 'headers' | 'body' | 'prescript' | 'postscript' = 'init';
   let headersDone = false;
   const lineBuffer = new Array<string>;
 
-  for await (const line of stream
-    .pipeThrough(new TextDecoderStream())
-    .pipeThrough(new TextLineStream())) {
+  for await (const line of stream.pipeThrough(new TextLineStream())) {
 
     if (currentMode == 'prescript') {
       if (line == '%}') {

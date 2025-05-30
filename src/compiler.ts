@@ -24,7 +24,8 @@ export async function compileHttpFile(opts: {
   plugins?: string[] | null;
 }) {
   await using inputFile = await Deno.open(opts.inputPath, { read: true });
-  const blockStream = parseHttpSyntax(inputFile.readable);
+  const blockStream = parseHttpSyntax(inputFile.readable
+    .pipeThrough(new TextDecoderStream()));
 
   // const fileDepth = path.split('/').length - 1;
   // const rootPath = new Array(fileDepth).fill('..').join('/');
