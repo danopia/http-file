@@ -1,0 +1,192 @@
+import { assert } from '@std/assert/assert';
+import { parseArgs } from '@std/cli/parse-args';
+
+import * as plugin from "./plugin.ts";
+import type { HeaderPost, HeaderPre, HttpClientApi, HttpRequestPre, StepOpts } from './types.ts';
+
+export class HttpClient implements HttpClientApi {
+  global: Map<string,string> = new Map;
+  assert: typeof assert = assert;
+
+  private pendingTests: Array<{
+    title: string;
+    callback: () => void | Promise<void>;
+  }> = [];
+
+  static async run(callable: (client: HttpClient) => Promise<void>) {
+    const client = new HttpClient();
+    await client.open();
+    try {
+      await plugin.runWrapFile(callable.bind(null, client));
+    } finally {
+      await client.close();
+    }
+  }
+
+  async open() {
+    if (Deno.args.includes('--from-env')) {
+      await this.setupFromEnv(Deno.env);
+    } else {
+      await this.setupFromArgs(Deno.args);
+    }
+    console.error(`Active Plugins: [${plugin.ActivePlugins.map(x => x.name).join(', ')}]`);
+    await plugin.open(this);
+  }
+  async close() {
+    await plugin.close();
+  }
+
+  async performStep(opts: StepOpts) {
+    this.pendingTests.length = 0;
+    await plugin.runWrapStep(opts.name, async () => {
+      const environment = this.global;
+      const variables = new Map<string,string>;
+
+      function replaceVars(text: string) {
+        return text.replaceAll(/{{([^}]+)}}/g, (capture, varName) => {
+          const replacement = variables.get(varName) ?? environment.get(varName);
+          if (replacement == null) {
+            console.error(`  ! WARN: reference to unresolved variable`, varName);
+          }
+          return replacement ?? capture;
+        });
+      }
+
+      const headersPre = opts.headers.map<HeaderPre>(pair => ({
+        name: pair[0],
+        getRawValue: () => pair[1] ?? '',
+        tryGetSubstitutedValue: () => replaceVars(pair[1] ?? ''),
+      }));
+      const requestPre: HttpRequestPre = {
+        environment,
+        variables,
+        method: opts.method,
+        body: {
+          getRaw: () => opts.body ?? '',
+          tryGetSubstituted: () => replaceVars(opts.body ?? ''),
+        },
+        url: {
+          getRaw: () => opts.url ?? '',
+          tryGetSubstituted: () => replaceVars(opts.url ?? ''),
+        },
+        headers: {
+          all: () => headersPre.slice(0),
+          findByName: (name) => headersPre.find(x => x.name == name) ?? null,
+        },
+      };
+      await opts.preScript?.(requestPre);
+
+      const rendered = {
+        method: requestPre.method,
+        url: requestPre.url.tryGetSubstituted(),
+        headers: new Headers(requestPre.headers.all().map(x => [x.name, x.tryGetSubstitutedValue()])),
+        body: requestPre.body.tryGetSubstituted(),
+      };
+
+      const resp = await plugin.runWrapFetch(new Request(rendered.url, {
+        method: rendered.method,
+        headers: rendered.headers,
+        body: rendered.body || null,
+      }), fetch);
+
+      const respText = await resp.text();
+      const respBody = respText.startsWith('{') ? JSON.parse(respText) : respText;
+      // console.log(respBody);
+      if (!resp.ok) {
+        console.log(typeof respBody == 'string' ? respBody.slice(0, 255) : respBody);
+        console.log(``);
+      }
+
+      const [mimeType, extraText] = resp.headers.get('content-type')?.split(';') ?? [];
+
+      const headersPost = [...rendered.headers].map<HeaderPost>(pair => ({
+        name: pair[0],
+        value: () => pair[1],
+      }));
+      await opts.postScript?.({
+        environment,
+        variables,
+        method: rendered.method,
+        body: () => rendered.body,
+        url: () => rendered.url,
+        headers: {
+          all: () => headersPost.slice(0),
+          findByName: (name) => headersPost.find(x => x.name == name) ?? null,
+        }
+      }, {
+        body: respBody,
+        status: resp.status,
+        contentType: {
+          mimeType: mimeType ?? '',
+          charset: extraText?.match(/charset=([^ ,]+)/)?.[1] ?? '',
+        },
+      });
+
+      // Run all tests sequintally and _then_ throw the first failure, if any
+      const testFailures = new Array<unknown>;
+      for (const test of this.pendingTests) {
+        try {
+          await plugin.runWrapTest(test.title, test.callback);
+        } catch (thrown) {
+          testFailures.push(thrown);
+        }
+      }
+      if (testFailures.length > 0) {
+        throw testFailures[0];
+      }
+    });
+  }
+
+  async log(text: string) {
+    await plugin.emitLog(text);
+  }
+
+  test(title: string, callback: () => void | Promise<void>) {
+    this.pendingTests.push({ title, callback });
+  }
+
+  async loadEnvFile(filePath: string, envKey: string) {
+    const envDict = await Deno.readTextFile(filePath).then(x => JSON.parse(x));
+    if (!(envKey in envDict)) {
+      throw `Environment "${envKey}" not found in "${filePath}". Available keys: [${Object.keys(envDict).join(', ')}]`;
+    }
+    const envData = envDict[envKey];
+    for (const pair of Object.entries(envData)) {
+      this.global.set(pair[0], String(pair[1]));
+    }
+  }
+
+  async setupFromEnv(env: { get: (key: string) => string | undefined }) {
+    const EnvFile = env.get('Http_EnvFile');
+    const EnvName = env.get('Http_EnvName') ?? 'default';
+    if (EnvFile) {
+      await this.loadEnvFile(EnvFile, EnvName);
+    }
+
+    const ExtraVars = env.get('Http_ExtraVars') ?? '{}';
+    for (const pair of Object.entries(JSON.parse(ExtraVars))) {
+      this.global.set(pair[0], `${pair[1]}`);
+    }
+  }
+
+  async setupFromArgs(givenArgs: Array<string>) {
+    const args = parseArgs(givenArgs, {
+      string: ['env-file', 'env', 'set'],
+      collect: ['set'],
+    });
+    if (args['env-file']) {
+      await this.loadEnvFile(args['env-file'], args['env'] ?? 'default');
+    }
+    for (const pair of args.set) {
+      const delimIdx = pair.indexOf('=');
+      if (delimIdx < 1) throw new Error(`invalid --set pair`);
+      this.global.set(pair.slice(0, delimIdx), pair.slice(delimIdx+1));
+    }
+  }
+
+}
+
+export function wait(seconds: number): Promise<void> {
+  console.error(`Waiting ${seconds} seconds...`);
+  return new Promise<void>(ok => setTimeout(ok, seconds * 1000));
+}

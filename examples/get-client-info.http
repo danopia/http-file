@@ -1,0 +1,30 @@
+### Get my IP Address
+GET https://da.gd/ip
+Accept: text/plain
+
+// Testing and printing
+// (this is a comment)
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.global.set("ipAddress", response.body);
+    client.log(`My IP address is ${response.body}`);
+%}
+
+
+### Get my request headers
+GET https://da.gd/headers
+Accept: text/plain
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.test("Server received our specified headers", function() {
+        client.assert(response.body.includes('text/plain'), "Server didn't receive Accept header");
+    });
+
+    client.log(`Received request headers:\n${response.body}`);
+%}

@@ -1,0 +1,27 @@
+{
+  "name": "@danopia/http-file",
+  "version": "0.1.0",
+  "license": "MIT",
+  "imports": {
+    "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.10",
+    "@std/assert": "jsr:@std/assert@^1",
+    "@std/cli": "jsr:@std/cli@^1",
+    "@std/fs": "jsr:@std/fs@^1",
+    "@std/path": "jsr:@std/path@^1",
+    "@std/streams": "jsr:@std/streams@^1"
+  },
+  "exports": {
+    "./plugins/console-log.ts": "./src/plugins/console-log.ts",
+    "./plugins/markdown-log.ts": "./src/plugins/markdown-log.ts",
+    "./plugins/opentelemetry.ts": "./src/plugins/opentelemetry.ts",
+    "./compiler.ts": "./src/compiler.ts",
+    "./parser.ts": "./src/parser.ts",
+    "./plugin.ts": "./src/plugin.ts",
+    "./runtime.ts": "./src/runtime.ts",
+    "./types.ts": "./src/types.ts"
+  },
+  "exclude": [
+    ".gitignore",
+    ".github"
+  ]
+}
