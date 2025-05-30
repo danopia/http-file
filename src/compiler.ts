@@ -20,7 +20,9 @@ export async function compileHttpFile(opts: {
   const blockStream = parseHttpFile(opts.inputPath);
   // const fileDepth = path.split('/').length - 1;
   // const rootPath = new Array(fileDepth).fill('..').join('/');
-  const importPath = opts.importPath ?? import.meta.url.replace(/\/[^/]+$/, '');
+  const importPath = opts.importPath ?? import.meta.url
+    .replace(/^https:\/\/jsr.io\/([^/]+\/[^/]+)\/([^/]+)\/src/, (_, pkg, ver) => `jsr:${pkg}@${ver}`)
+    .replace(/\/[^/]+$/, '');
   const scriptStream = renderHttpScript(blockStream, importPath, opts.plugins ?? ['console-log']);
   const outputStream = ReadableStream
     .from(scriptStream)
