@@ -1,9 +1,24 @@
 import { LogicTracer } from '@cloudydeno/opentelemetry/instrumentation/async.ts';
-import type { PluginRegistration } from "../types.ts";
 
-const fileTracer = new LogicTracer({ name: 'http.script' });
-const stepTracer = new LogicTracer({ name: 'http.step' });
-const testTracer = new LogicTracer({ name: 'http.test' });
+import type { PluginRegistration } from "../types.ts";
+import moduleJson from '../../deno.json' with { type: 'json' };
+
+const fileTracer = new LogicTracer({
+  name: 'http.script',
+  version: moduleJson.version,
+});
+
+const stepTracer = new LogicTracer({
+  name: 'http.step',
+  version: moduleJson.version,
+  requireParent: true,
+});
+
+const testTracer = new LogicTracer({
+  name: 'http.test',
+  version: moduleJson.version,
+  requireParent: true,
+});
 
 /**
  * Wraps the http file's steps and tests with OpenTelemetry spans.

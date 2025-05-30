@@ -41,10 +41,10 @@ export class HttpClient implements Client {
   }> = [];
 
   async runScript(script: HttpScript): Promise<void> {
+    await this.setup();
+    await this.hooks.createPlugins(script.plugins);
     await this.hooks.runWrapFile(script.name, async () => {
       try {
-        await this.setup();
-        await this.hooks.createPlugins(script.plugins);
         for (const step of script.steps) {
           await this.performStep(step);
         }

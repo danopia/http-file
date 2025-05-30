@@ -57,7 +57,8 @@ export async function* renderHttpScript(
   plugins: string[],
 ): AsyncGenerator<string> {
   yield [
-    `#!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net`,
+    // TODO: better way of knowing what flags to add to the file
+    `#!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net${plugins.includes('opentelemetry') ? ' --unstable-otel' : ''}`,
     `// deno-lint-ignore-file no-unused-vars`,
     `import { HttpScript, type Client, wait } from '${importPath}/runtime.ts';`,
     '',
