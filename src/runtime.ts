@@ -219,7 +219,7 @@ export class HttpClient implements Client {
 }
 
 export function wait(seconds: number): Promise<void> {
-  console.error(`Waiting ${seconds} seconds...`);
+  // console.error(`Waiting ${seconds} seconds...`);
   return new Promise<void>(ok => setTimeout(ok, seconds * 1000));
 }
 
