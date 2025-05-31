@@ -1,4 +1,4 @@
-import type { PluginRegistration } from "@danopia/http-file/types.ts";
+import type { PluginRegistration } from "../types.ts";
 
 /**
  * Emits only high-level script progress to stdout as JSON lines
