@@ -13,6 +13,10 @@ export const plugin: PluginRegistration = {
     const writer = output.writable.getWriter();
     let outPromise: null | Promise<void> = null;
 
+    async function writeLines(lines: string[]) {
+      await writer.write([...lines, ''].join('\n'));
+    }
+
     // Github provides a specific location to emit markdown to
     const summaryPath = Deno.env.get('GITHUB_STEP_SUMMARY');
     if (summaryPath) {

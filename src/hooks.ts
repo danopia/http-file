@@ -1,14 +1,11 @@
-import type { PluginInstance, Client, PluginRegistration } from "./types.ts";
+import type { PluginInstance, PluginProps, PluginRegistration } from "./types.ts";
 
 export class HooksManager {
-  constructor(
-    private readonly client: Client,
-  ) {}
   private readonly plugins: Array<PluginInstance> = [];
 
-  async createPlugins(registrations: Array<PluginRegistration>) {
+  async createPlugins(registrations: Array<PluginRegistration>, props: PluginProps) {
     for (const hooks of registrations) {
-      this.plugins.push(await hooks.create(this.client));
+      this.plugins.push(await hooks.create(props));
     }
   }
 

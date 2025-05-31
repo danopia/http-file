@@ -1,8 +1,13 @@
 /** Interface used by generated wrapper code */
 export interface HttpScriptApi {
+  // building
   addStep(opts: StepOpts): void;
   addPlugin(plugin: PluginRegistration | { plugin: PluginRegistration }): void;
   runNow(): Promise<void>;
+  // inspecting
+  readonly steps: Array<StepOpts>;
+  readonly plugins: Array<PluginRegistration>;
+  readonly name: string;
 };
 
 /** The client interface that embedded scripts can reference */
@@ -41,7 +46,12 @@ export type StepOpts = {
 export interface PluginRegistration {
   name: string;
   denoFlags?: Array<string>;
-  create(client: Client): PluginInstance | Promise<PluginInstance>;
+  create(props: PluginProps): PluginInstance | Promise<PluginInstance>;
+};
+
+export type PluginProps = {
+  client: Client;
+  script: HttpScriptApi;
 };
 
 /** Interface implemented by http-file plugins in the context of a particular Client */

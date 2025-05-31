@@ -30,10 +30,7 @@ export class HttpScript implements HttpScriptApi {
 export class HttpClient implements Client {
   public readonly global: Map<string,string> = new Map;
 
-  private readonly hooks: HooksManager;
-  constructor() {
-    this.hooks = new HooksManager(this);
-  }
+  private readonly hooks = new HooksManager;
 
   private pendingTests: Array<{
     title: string;
@@ -42,7 +39,10 @@ export class HttpClient implements Client {
 
   async runScript(script: HttpScript): Promise<void> {
     await this.setup();
-    await this.hooks.createPlugins(script.plugins);
+    await this.hooks.createPlugins(script.plugins, {
+      client: this,
+      script,
+    });
     await this.hooks.runWrapFile(script.name, async () => {
       try {
         for (const step of script.steps) {

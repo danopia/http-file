@@ -11,6 +11,7 @@
     "./plugins/console-log.ts": "./src/plugins/console-log.ts",
     "./plugins/markdown-log.ts": "./src/plugins/markdown-log.ts",
     "./plugins/opentelemetry.ts": "./src/plugins/opentelemetry.ts",
+    "./plugins/progress-stream.ts": "./src/plugins/progress-stream.ts",
     "./compiler.ts": "./src/compiler.ts",
     "./parser.ts": "./src/parser.ts",
     "./runtime.ts": "./src/runtime.ts",
