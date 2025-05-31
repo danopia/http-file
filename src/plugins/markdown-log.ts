@@ -37,6 +37,7 @@ export const plugin: PluginRegistration = {
       }
     }
 
+    let stepNum = 0;
     return {
       async close() {
         await writer.close();
@@ -48,7 +49,7 @@ export const plugin: PluginRegistration = {
       },
 
       async wrapStep(name, callable) {
-        await writer.write(`## ${name}\n`);
+        await writer.write(`## Step ${++stepNum}: ${name}\n`);
         try {
           await callable();
         } finally {
@@ -88,7 +89,7 @@ export const plugin: PluginRegistration = {
         // Try buffering and recording the response texts
         const interceptedResp = await interceptTextBody(resp);
 
-        await writeHttpRecord(`${resp.status} ${resp.ok ? '' : '⚠'} <code>${resp.statusText}</code>`, interceptedResp?.markdown, !resp.ok);
+        await writeHttpRecord(`${resp.status} ${resp.ok ? '' : '❗'} <code>${resp.statusText}</code>`, interceptedResp?.markdown, !resp.ok);
 
         if (interceptedResp) {
           return new Response(interceptedResp.text, resp);
