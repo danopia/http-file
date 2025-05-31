@@ -28,9 +28,18 @@ export async function compileHttpFile(opts: {
   const blockStream = parseHttpSyntax(inputFile.readable
     .pipeThrough(new TextDecoderStream()));
 
-  // const fileDepth = path.split('/').length - 1;
-  // const rootPath = new Array(fileDepth).fill('..').join('/');
-  const importPath = opts.importPath ?? import.meta.url
+  let importPath = opts.importPath;
+  if (!importPath) {
+    const ourRepoPath = new URL('..', import.meta.url);
+    const targetPath = new URL(opts.outputPath, `file://${Deno.cwd()}/`);
+    if (targetPath.toString().startsWith(ourRepoPath.toString())) {
+      importPath =[
+        ...new Array(targetPath.pathname.split('/').length - ourRepoPath.pathname.split('/').length).fill('..'),
+        'src',
+      ].join('/');
+    }
+  }
+  importPath ??= import.meta.url
     .replace(/^https:\/\/jsr.io\/([^/]+\/[^/]+)\/([^/]+)\/src/, (_, pkg, ver) => `jsr:${pkg}@${ver}`)
     .replace(/\/[^/]+$/, '');
 

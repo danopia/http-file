@@ -38,6 +38,16 @@ jobs:
         deno check examples/get-client-info.http.ts
         examples/get-client-info.http.ts
 
+    - name: Compile all examples
+      run: |
+        find . -name '*.http' -type f \
+        | xargs -n1 src/compiler.ts
+        deno check examples/*.http.ts
+
+    - name: Try main examples
+      run: |
+        examples/get-client-info.http.ts
+
   publish:
     runs-on: ubuntu-latest
     needs: check
