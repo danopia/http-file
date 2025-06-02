@@ -43,7 +43,9 @@ export const plugin: PluginRegistration = {
           } else {
             const fullUrl = urlTemplate
               .replaceAll('{TraceId}', ctx.traceId)
-              .replaceAll('{SpanId}', ctx.spanId);
+              .replaceAll('{TraceIdDecimal}', BigInt(`0x${ctx.traceId}`).toString(10))
+              .replaceAll('{SpanId}', ctx.spanId)
+              .replaceAll('{SpanIdDecimal}', BigInt(`0x${ctx.spanId}`).toString(10));
             // TODO: should this be sent via client.log()?
             console.log(`\nTracing of this script run will be available at ${fullUrl}\n`);
           }
