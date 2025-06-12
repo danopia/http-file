@@ -21,7 +21,9 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
   let headersDone = false;
   const lineBuffer = new Array<string>;
 
+  let lineNum = 0;
   for await (const line of stream.pipeThrough(new TextLineStream())) {
+    lineNum++;
     // for debugging the state machine:
     // console.log(currentMode, currentBlock, line);
 
@@ -99,6 +101,9 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
         headersDone = true;
         currentMode = 'body';
         lineBuffer.length = 0;
+      } else {
+        // this might be ok, it depends on when the warning next comes up
+        console.warn('WARN: header parser unexpectedly skipping line', lineNum, 'in http file');
       }
       continue;
     }
@@ -116,7 +121,7 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
     }
 
     if (!line) continue;
-    console.error('TODO:', { line, currentBlock, currentMode, lineBuffer });
+    console.error('TODO:', { line, lineNum, currentBlock, currentMode, lineBuffer });
     break;
   }
   if (currentBlock.url) {
