@@ -1,6 +1,7 @@
 import { LogicTracer } from '@cloudydeno/opentelemetry/instrumentation/async.ts';
+import type { Span } from '@cloudydeno/opentelemetry/pkg/api';
 
-import type { PluginRegistration } from "../types.ts";
+import type { PluginRegistration } from '../types.ts';
 import moduleJson from '../../deno.json' with { type: 'json' };
 
 const fileTracer = new LogicTracer({
@@ -32,23 +33,10 @@ export const plugin: PluginRegistration = {
 
     wrapFile: (name, callable) => fileTracer
       .asyncSpan(name, {}, async (span) => {
-        await callable();
-
-        // Enable printing a trace viewer deeplink if configured
-        const urlTemplate = Deno.env.get('OTEL_TRACE_URL_TEMPLATE');
-        if (urlTemplate && span) {
-          const ctx = span.spanContext();
-          if (ctx.traceId == '00000000000000000000000000000000') {
-            console.log(`\nTracing of this script run was not recorded.\n`);
-          } else {
-            const fullUrl = urlTemplate
-              .replaceAll('{TraceId}', ctx.traceId)
-              .replaceAll('{TraceIdDecimal}', BigInt(`0x${ctx.traceId}`).toString(10))
-              .replaceAll('{SpanId}', ctx.spanId)
-              .replaceAll('{SpanIdDecimal}', BigInt(`0x${ctx.spanId}`).toString(10));
-            // TODO: should this be sent via client.log()?
-            console.log(`\nTracing of this script run will be available at ${fullUrl}\n`);
-          }
+        try {
+          await callable();
+        } finally {
+          maybePrintTraceLink(span);
         }
       }),
 
@@ -72,3 +60,29 @@ export const plugin: PluginRegistration = {
 
   }),
 };
+
+/**
+ * Print a trace viewer deeplink if configured via enviroment.
+ * Example template values, replacing <...> as appropriate:
+ * - Datadog: https://<datadog-site>/apm/trace/{TraceId}?graphType=flamegraph&spanID={SpanIdDecimal}
+ * - Jaeger: https://<some-jaeger-instance>/trace/{TraceId}?uiFind={SpanId}
+ * - Honeycomb: https://ui.honeycomb.io/<team>/environments/<env>/trace?trace_id={TraceId}&span={SpanId}
+ * @param span The particular span to deeplink to
+ */
+function maybePrintTraceLink(span: Span | null) {
+  const urlTemplate = Deno.env.get('OTEL_TRACE_URL_TEMPLATE');
+  if (urlTemplate && span) {
+    const ctx = span.spanContext();
+    if (ctx.traceId == '00000000000000000000000000000000') {
+      console.log(`\nTracing of this script run was not recorded.\n`);
+    } else {
+      const fullUrl = urlTemplate
+        .replaceAll('{TraceId}', ctx.traceId)
+        .replaceAll('{TraceIdDecimal}', BigInt(`0x${ctx.traceId}`).toString(10))
+        .replaceAll('{SpanId}', ctx.spanId)
+        .replaceAll('{SpanIdDecimal}', BigInt(`0x${ctx.spanId}`).toString(10));
+      // TODO: should this be sent via client.log()?
+      console.log(`\nTracing of this script run will be available at ${fullUrl}\n`);
+    }
+  }
+}
