@@ -1,6 +1,6 @@
 {
   "name": "@danopia/http-file",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "imports": {
     "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.10",
