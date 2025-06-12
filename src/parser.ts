@@ -91,7 +91,10 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
     }
 
     if (!headersDone) {
-      if (line.includes(': ')) {
+      if (currentBlock.headers.length == 0 && line.match(/^\W+/)) {
+        // Hanging whitespace indicates a continuation of the URL line
+        currentBlock.url += line.replace(/^\W+/, '');
+      } else if (line.includes(': ')) {
         const colonIdx = line.indexOf(': ');
         currentBlock.headers.push([
           line.slice(0, colonIdx),

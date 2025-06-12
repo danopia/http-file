@@ -83,3 +83,23 @@ Deno.test('parses both requests', async () => {
     body: 'a body\n',
   });
 });
+
+Deno.test('rejoins a url spanning lines', async () => {
+  const blocks = await parseFromLines([
+    '### Query an API',
+    'GET https://api/query?accountId={{customerID}}&limit=25&orderBy=code&',
+    '    orderByDesc=true&skip=0',
+    'Accept: application/json',
+    '',
+  ]);
+  assertEquals(blocks.length, 1);
+  assertObjectMatch(blocks[0], {
+    name: 'Query an API',
+    method: 'GET',
+    headers: [
+      ['Accept', 'application/json'],
+    ],
+    body: '',
+  });
+  assertEquals(blocks[0].url, 'https://api/query?accountId={{customerID}}&limit=25&orderBy=code&orderByDesc=true&skip=0');
+});
