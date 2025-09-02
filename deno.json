@@ -13,6 +13,7 @@
     "./plugins/opentelemetry.ts": "./src/plugins/opentelemetry.ts",
     "./plugins/progress-stream.ts": "./src/plugins/progress-stream.ts",
     "./compiler.ts": "./src/compiler.ts",
+    "./interpreter.ts": "./src/interpreter.ts",
     "./parser.ts": "./src/parser.ts",
     "./runtime.ts": "./src/runtime.ts",
     "./types.ts": "./src/types.ts"

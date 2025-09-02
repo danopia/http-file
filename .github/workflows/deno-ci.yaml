@@ -44,9 +44,13 @@ jobs:
         | xargs -n1 src/compiler.ts
         deno check examples/*.http.ts
 
-    - name: Try main examples
+    - name: Try main examples directly
       run: |
         examples/get-client-info.http.ts
+
+    - name: Try main examples with interpreter
+      run: |
+        src/interpreter.ts --file examples/get-client-info.http
 
   publish:
     runs-on: ubuntu-latest
