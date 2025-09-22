@@ -66,7 +66,7 @@ For example:
 
 * `console-log` writes a somewhat concise record of the http script's actions to the console as text. Included by default when no plugins are specified.
 * `markdown-log` outputs a more-detailed record of the script's actions in a markdown format. When run in Github Actions, the markdown is sent to Github and gets displayed nicely on the Job Summary page; otherwise it is just written to the console.
-* `opentelemetry` executes the http script within one Opentelemtry trace and also instruments the script steps and tests with spans. Combine this with [Deno's Otel support](https://docs.deno.com/runtime/fundamentals/open_telemetry/) to export the instrumentation to your preferred observability vendor.
+* `opentelemetry` executes the http script within one Opentelemetry trace and also instruments the script steps and tests with spans. Combine this with [Deno's Otel support](https://docs.deno.com/runtime/fundamentals/open_telemetry/) to export the instrumentation to your preferred observability vendor.
 * `progress-stream` outputs the ongoing high-level progress (step-by-step) as JSON lines for driving wrapper UIs.
 
 #### Plugin development

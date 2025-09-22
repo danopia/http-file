@@ -38,10 +38,11 @@ export async function interpretHttpFile(opts: {
   const importPath = import.meta.url
     .replace(/^https:\/\/jsr.io\/([^/]+\/[^/]+)\/([^/]+)\/src/, (_, pkg, ver) => `jsr:${pkg}@${ver}`)
     .replace(/\/[^/]+$/, '');
+  const importExtension = import.meta.url.endsWith('.js') ? 'js' : 'ts';
   const pluginObjs = await Promise.all(opts.plugins
     .map<Promise<PluginRegistration>>(plugin => plugin.includes('/')
       ? import(plugin)
-      : import(`${importPath}/plugins/${plugin}.ts`)));
+      : import(`${importPath}/plugins/${plugin}.${importExtension}`)));
 
   const scriptObj = await instantiateHttpScript(
     opts.inputPath,

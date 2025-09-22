@@ -1,6 +1,6 @@
 import { parseHttpSyntax } from "./parser.ts";
-import { assertEquals } from "jsr:@std/assert@1.0.13/equals";
-import { assertObjectMatch } from "jsr:@std/assert@1.0.13/object-match";
+import { assertEquals } from "@std/assert/equals";
+import { assertObjectMatch } from "@std/assert/object-match";
 
 async function parseFromLines(lines: string[]) {
   const textStream = ReadableStream.from(lines.map(x => `${x}\n`));

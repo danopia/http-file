@@ -65,6 +65,8 @@ export async function* renderHttpScript(
   importPath: string,
   plugins: string[],
 ): AsyncGenerator<string> {
+  const importExtension = import.meta.url.endsWith('.js') ? 'js' : 'ts';
+
   yield [
     // TODO: better way of knowing what flags to add to the file
     `#!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net${plugins.includes('opentelemetry') ? ' --unstable-otel' : ''}`,
@@ -72,7 +74,7 @@ export async function* renderHttpScript(
     `import { HttpScript, type Client, wait } from '${importPath}/runtime.ts';`,
     '',
     `const script = new HttpScript(${JSON.stringify(scriptName)});`,
-    ...plugins.map(x => `script.addPlugin(await import(${JSON.stringify(x.includes('/') ? x : `${importPath}/plugins/${x}.ts`)}));`),
+    ...plugins.map(x => `script.addPlugin(await import(${JSON.stringify(x.includes('/') ? x : `${importPath}/plugins/${x}.${importExtension}`)}));`),
   ].join('\n')+'\n\n';
 
   for await (const block of blocks) {

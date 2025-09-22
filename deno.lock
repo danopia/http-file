@@ -1,61 +1,36 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@cloudydeno/opentelemetry@0.10": "0.10.3",
-    "jsr:@cloudydeno/shimmer@1.2.1": "1.2.1",
-    "jsr:@std/assert@1.0.13": "1.0.13",
-    "jsr:@std/bytes@^1.0.5": "1.0.6",
-    "jsr:@std/cli@1": "1.0.17",
-    "jsr:@std/internal@^1.0.6": "1.0.7",
-    "jsr:@std/streams@1": "1.0.9",
-    "npm:@types/node@*": "22.15.15"
+    "jsr:@cloudydeno/opentelemetry@0.11": "0.11.0",
+    "jsr:@std/assert@1": "1.0.14",
+    "jsr:@std/cli@1": "1.0.22",
+    "jsr:@std/internal@^1.0.10": "1.0.10",
+    "jsr:@std/streams@1": "1.0.12"
   },
   "jsr": {
-    "@cloudydeno/opentelemetry@0.10.3": {
-      "integrity": "a678c8cac0853b6097ad0291274a60baa185a377cb9c34fc2340836c58644345",
-      "dependencies": [
-        "jsr:@cloudydeno/shimmer"
-      ]
+    "@cloudydeno/opentelemetry@0.11.0": {
+      "integrity": "a7be5d86697b1e733639b73e16758f469fb104f887280b87792dc4e39100fe09"
     },
-    "@cloudydeno/shimmer@1.2.1": {
-      "integrity": "6d7cf8ba798532a9beb963937977e28e26dbd4e020b38f828a411aaacb34c3b2"
-    },
-    "@std/assert@1.0.13": {
-      "integrity": "ae0d31e41919b12c656c742b22522c32fb26ed0cba32975cb0de2a273cb68b29",
+    "@std/assert@1.0.14": {
+      "integrity": "68d0d4a43b365abc927f45a9b85c639ea18a9fab96ad92281e493e4ed84abaa4",
       "dependencies": [
         "jsr:@std/internal"
       ]
     },
-    "@std/bytes@1.0.6": {
-      "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
+    "@std/cli@1.0.22": {
+      "integrity": "50d1e4f87887cb8a8afa29b88505ab5081188f5cad3985460c3b471fa49ff21a"
     },
-    "@std/cli@1.0.17": {
-      "integrity": "e15b9abe629e17be90cc6216327f03a29eae613365f1353837fa749aad29ce7b"
+    "@std/internal@1.0.10": {
+      "integrity": "e3be62ce42cab0e177c27698e5d9800122f67b766a0bea6ca4867886cbde8cf7"
     },
-    "@std/internal@1.0.7": {
-      "integrity": "39eeb5265190a7bc5d5591c9ff019490bd1f2c3907c044a11b0d545796158a0f"
-    },
-    "@std/streams@1.0.9": {
-      "integrity": "a9d26b1988cdd7aa7b1f4b51e1c36c1557f3f252880fa6cc5b9f37078b1a5035",
-      "dependencies": [
-        "jsr:@std/bytes"
-      ]
-    }
-  },
-  "npm": {
-    "@types/node@22.15.15": {
-      "integrity": "sha512-R5muMcZob3/Jjchn5LcO8jdKwSCbzqmPB6ruBxMcf9kbxtniZHP327s6C37iOfuw8mbKK3cAQa7sEl7afLrQ8A==",
-      "dependencies": [
-        "undici-types"
-      ]
-    },
-    "undici-types@6.21.0": {
-      "integrity": "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="
+    "@std/streams@1.0.12": {
+      "integrity": "ae925fa1dc459b1abf5cbaa28cc5c7b0485853af3b2a384b0dc22d86e59dfbf4"
     }
   },
   "workspace": {
     "dependencies": [
-      "jsr:@cloudydeno/opentelemetry@0.10",
+      "jsr:@cloudydeno/opentelemetry@0.11",
+      "jsr:@std/assert@1",
       "jsr:@std/cli@1",
       "jsr:@std/streams@1"
     ]
