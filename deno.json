@@ -1,6 +1,6 @@
 {
   "name": "@danopia/http-file",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "license": "MIT",
   "imports": {
     "@cloudydeno/opentelemetry": "jsr:@cloudydeno/opentelemetry@~0.11",
@@ -12,6 +12,7 @@
     "./plugins/console-log.ts": "./src/plugins/console-log.ts",
     "./plugins/markdown-log.ts": "./src/plugins/markdown-log.ts",
     "./plugins/opentelemetry.ts": "./src/plugins/opentelemetry.ts",
+    "./plugins/output-variables.ts": "./src/plugins/output-variables.ts",
     "./plugins/progress-stream.ts": "./src/plugins/progress-stream.ts",
     "./compiler.ts": "./src/compiler.ts",
     "./interpreter.ts": "./src/interpreter.ts",
