@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         deno-version:
-        - v2.3
+        - v2.5
         - canary
       fail-fast: false # run each branch to completion
 
@@ -26,11 +26,14 @@ jobs:
       with:
         deno-version: ${{ matrix.deno-version }}
 
+    - name: Cache Deno deps
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: denodir/${{ matrix.deno-version }}-${{ hashFiles('deno.lock') }}
+
     - name: Run tests
       run: time deno test
-
-    - name: Check publish rules
-      run: time deno publish --dry-run --allow-dirty
 
     - name: Try out examples/get-client-info.http
       run: |
@@ -52,9 +55,28 @@ jobs:
       run: |
         src/interpreter.ts --file examples/get-client-info.http
 
+  check-publish:
+    runs-on: ubuntu-latest
+    name: Check JSR
+
+    steps:
+    - uses: denoland/setup-deno@v2
+    - uses: actions/checkout@v5
+
+    - name: Cache Deno deps
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: denodir-${{ hashFiles('deno.lock') }}
+
+    - name: Check publish rules
+      run: deno publish --dry-run --allow-dirty
+
   publish:
     runs-on: ubuntu-latest
-    needs: check
+    needs:
+    - check
+    - check-publish
     if: github.event_name == 'push'
 
     permissions:
@@ -63,8 +85,13 @@ jobs:
 
     steps:
     - uses: denoland/setup-deno@v2
-
     - uses: actions/checkout@v5
+
+    - name: Cache Deno deps
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/deno
+        key: denodir-${{ hashFiles('deno.lock') }}
 
     - name: Publish now
       run: deno publish

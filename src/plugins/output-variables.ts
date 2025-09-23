@@ -9,7 +9,7 @@
  * @module
 */
 
-import type { PluginRegistration } from "@danopia/http-file/types.ts";
+import type { PluginRegistration } from '../types.ts';
 
 /** A plugin that logs changed global variables after file execution */
 export const plugin: PluginRegistration = {
