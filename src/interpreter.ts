@@ -92,5 +92,8 @@ function transformScript(text: string) {
   text = text.replace(/import {wait} from "[^"]+"\n/, '');
   text = text.replace(/^( +)(wait\()/m, (_,a,b) => `${a}await ${b}`);
 
+  // Another way of delaying execution:
+  text = text.replace(/^( +)execSync\('sleep ([0-9]+)'\)/m, (_,a,b) => `${a}await wait(${b})`);
+
   return text;
 }
