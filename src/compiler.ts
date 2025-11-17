@@ -1,5 +1,6 @@
 #!/usr/bin/env -S deno run --allow-read=. --allow-write=.
 import { parseHttpSyntax } from "./parser.ts";
+import { transformScript } from "./transformer.ts";
 import type { HttpBlock } from "./types.ts";
 
 if (import.meta.main) {
@@ -112,15 +113,4 @@ export async function* renderHttpScript(
     `  await script.runNow();`,
     `}`,
   ].join('\n')+'\n';
-}
-
-function transformScript(text: string) {
-
-  // The http file community has a 'wait' workaround for the lack of a delay function
-  // We try to replace several versions of that with a proper async sleep
-  text = text.replace(/const wait = seconds => \{[^}]+\};\n/, '');
-  text = text.replace(/import {wait} from "[^"]+"\n/, '');
-  text = text.replace(/^( +)(wait\()/m, (_,a,b) => `${a}await ${b}`);
-
-  return text;
 }
