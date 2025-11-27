@@ -116,7 +116,9 @@ export class HttpClient implements Client {
       }), fetch);
 
       const respText = await resp.text();
-      const respBody = respText.startsWith('{') ? JSON.parse(respText) : respText;
+      const respBody = (respText.startsWith('{') || respText.startsWith('['))
+        ? JSON.parse(respText)
+        : respText;
       // console.error(respBody);
       if (!resp.ok) {
         console.error(typeof respBody == 'string' ? respBody.slice(0, 255) : respBody);

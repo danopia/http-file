@@ -115,10 +115,10 @@ async function interceptTextBody(message: {
   const contentType = message.headers.get('content-type') ?? '';
   if (contentType.startsWith('text/') || contentType.startsWith('application/json')) {
     const text = await message.text();
-    const formatted = text.startsWith('{')
+    const formatted = (text.startsWith('{') || text.startsWith('['))
       ? JSON.stringify(JSON.parse(text), null, 2)
       : text.trimEnd();
-    const mdType = text.startsWith('{')
+    const mdType = (text.startsWith('{') || text.startsWith('['))
       ? 'json'
       : '';
 
