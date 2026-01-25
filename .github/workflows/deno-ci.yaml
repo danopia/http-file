@@ -70,6 +70,7 @@ jobs:
         key: denodir-${{ hashFiles('deno.lock') }}
 
     - name: Check publish rules
+      working-directory: src
       run: deno publish --dry-run --allow-dirty
 
   publish:
@@ -94,4 +95,5 @@ jobs:
         key: denodir-${{ hashFiles('deno.lock') }}
 
     - name: Publish now
+      working-directory: src
       run: deno publish
