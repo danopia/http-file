@@ -4,6 +4,7 @@ import type { HttpBlock } from "./types.ts";
 function emptyBlock(name: string): HttpBlock {
   return {
     name,
+    tags: {},
     method: '',
     url: '',
     headers: [],
@@ -72,8 +73,38 @@ export async function* parseHttpSyntax(stream: ReadableStream<string>): AsyncGen
       continue;
     }
 
-    // comments
+    // comments, which may contain "tags"
     if (line.startsWith('//') || line.startsWith('#')) {
+      if (line.includes('@no-redirect')) {
+        currentBlock.tags['no-redirect'] = true;
+      }
+      if (line.includes('@no-cookie-jar')) {
+        currentBlock.tags['no-cookie-jar'] = true;
+      }
+      if (line.includes('@no-log')) {
+        currentBlock.tags['no-log'] = true;
+      }
+      if (line.includes('@no-auto-encoding')) {
+        currentBlock.tags['no-auto-encoding'] = true;
+      }
+      const nameMatch = line.match(/@name(?: *= *| +)(?<name>.+)/);
+      if (nameMatch?.groups) {
+        currentBlock.name = nameMatch.groups['name'];
+      }
+      const timeoutMatch = line.match(/@timeout (?<value>[0-9]+)(?: (?<unit>[a-z]+))?/);
+      if (timeoutMatch?.groups) {
+        currentBlock.tags['timeout'] = {
+          value: parseFloat(timeoutMatch.groups['value']),
+          unit: timeoutMatch.groups['unit'] || null,
+        };
+      }
+      const connTimeoutMatch = line.match(/@connection-timeout (?<value>[0-9]+)(?: (?<unit>[a-z]+))?/);
+      if (connTimeoutMatch?.groups) {
+        currentBlock.tags['connection-timeout'] = {
+          value: parseFloat(connTimeoutMatch.groups['value']),
+          unit: connTimeoutMatch.groups['unit'] || null,
+        };
+      }
       continue;
     }
 

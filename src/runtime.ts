@@ -113,6 +113,7 @@ export class HttpClient implements Client {
         method: rendered.method,
         headers: rendered.headers,
         body: rendered.body || null,
+        redirect: opts.redirect,
       }), fetch);
 
       const respText = await resp.text();

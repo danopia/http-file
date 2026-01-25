@@ -21,9 +21,24 @@ export interface Client {
   performStep(opts: StepOpts): Promise<void>;
 };
 
+type TimeoutDuration = {
+  /** By default, the timeout values are in seconds, but you can add an explicit unit of time */
+  value: number;
+  /** ms for milliseconds, s for seconds, m for minutes, for example 100 ms or 5 m. */
+  unit: string | null;
+};
+
 /** An http request definition parsed out of a .http file */
 export type HttpBlock = {
   name: string;
+  tags: {
+    'connection-timeout'?: TimeoutDuration;
+    'no-auto-encoding'?: boolean;
+    'no-cookie-jar'?: boolean;
+    'no-log'?: boolean;
+    'no-redirect'?: boolean;
+    'timeout'?: TimeoutDuration;
+  };
   method: string;
   url: string;
   headers: Array<[string, string]>;
@@ -38,6 +53,7 @@ export type StepOpts = {
   url: string;
   headers: Array<[string, string]>;
   body?: string;
+  redirect?: RequestRedirect,
   preScript?: (client: Client, request: HttpRequestPre) => void | Promise<void>;
   postScript?: (client: Client, request: HttpRequestPost, response: HttpResponse) => void | Promise<void>;
 };

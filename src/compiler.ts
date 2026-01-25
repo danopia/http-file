@@ -88,6 +88,9 @@ export async function* renderHttpScript(
       yield `    ${JSON.stringify(header)},\n`;
     }
     yield `  ],\n`;
+    if (block.tags['no-redirect']) {
+      yield `  redirect: "manual",`;
+    }
     if (block.body) {
       yield `  body: ${JSON.stringify(block.body)},\n`;
     }

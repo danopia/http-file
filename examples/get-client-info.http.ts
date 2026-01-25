@@ -17,7 +17,7 @@ script.addStep({
         client.assert(response.status === 200, "Response status is not 200");
     });
 
-    client.global.set("ipAddress", response.body);
+    client.global.set("ipAddress", response.body.trimEnd());
   },
 });
 

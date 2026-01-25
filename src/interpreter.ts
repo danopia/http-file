@@ -72,6 +72,7 @@ export async function instantiateHttpScript(
       method: block.method,
       url: block.url,
       headers: block.headers,
+      redirect: block.tags['no-redirect'] ? 'manual' : 'follow',
       body: block.body,
       preScript: block.preScript
         ? new AsyncFunction('client', 'request', transformScript(block.preScript))

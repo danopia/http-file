@@ -90,7 +90,6 @@ Deno.test('rejoins a url spanning lines', async () => {
     'GET https://api/query?accountId={{customerID}}&limit=25&orderBy=code&',
     '    orderByDesc=true&skip=0',
     'Accept: application/json',
-    '',
   ]);
   assertEquals(blocks.length, 1);
   assertObjectMatch(blocks[0], {
@@ -103,3 +102,73 @@ Deno.test('rejoins a url spanning lines', async () => {
   });
   assertEquals(blocks[0].url, 'https://api/query?accountId={{customerID}}&limit=25&orderBy=code&orderByDesc=true&skip=0');
 });
+
+// https://www.jetbrains.com/help/idea/exploring-http-syntax.html#http_request_names
+Deno.test('request naming styles', async () => {
+  const blocks = await parseFromLines([
+    '### Request',
+    'GET https://dummy.restapiexample.com/api/v1/employee/1',
+    '',
+    '###',
+    '# @name AnotherRequest',
+    'GET https://dummy.restapiexample.com/api/v1/employee/2',
+    '',
+    '###',
+    '# @name=One More Request',
+    'GET https://dummy.restapiexample.com/api/v1/employee/3',
+  ]);
+  assertEquals(blocks.length, 3);
+  assertEquals(blocks[0].name, 'Request');
+  assertEquals(blocks[1].name, 'AnotherRequest');
+  assertEquals(blocks[2].name, 'One More Request');
+});
+
+// https://www.jetbrains.com/help/idea/exploring-http-syntax.html#break-long-requests-into-several-lines
+Deno.test('request url line breaking', async () => {
+  const blocks = await parseFromLines([
+    'GET https://example.com:8080/api/get/html?',
+    '    firstname=John&',
+    '    lastname=Doe&',
+    '    planet=Tatooine&',
+    '    town=Freetown',
+  ]);
+  assertEquals(blocks.length, 1);
+  assertEquals(blocks[0].url, 'https://example.com:8080/api/get/html?firstname=John&lastname=Doe&planet=Tatooine&town=Freetown');
+});
+
+// https://www.jetbrains.com/help/idea/exploring-http-syntax.html#specify-request-timeouts
+Deno.test('timeout tag parsing', async () => {
+  const blocks = await parseFromLines([
+    '# @timeout 600',
+    '// @connection-timeout 2 m',
+    'GET example.com/api',
+  ]);
+  assertEquals(blocks.length, 1);
+  assertObjectMatch(blocks[0], {
+    method: 'GET',
+    url: 'example.com/api',
+    tags: {
+      'timeout': { value: 600, unit: null },
+      'connection-timeout': { value: 2, unit: 'm' },
+    },
+    headers: [],
+    body: '',
+  });
+});
+
+// TODO: who is supposed to reconcile this whitespace?
+// Deno.test('request urlencoded body line breaking', async () => {
+//   const blocks = await parseFromLines([
+//     'POST https://ijhttp-examples.jetbrains.com/post',
+//     'Content-Type: application/x-www-form-urlencoded',
+//     '',
+//     'key1 = value1 &',
+//     'key2 = value2 &',
+//     'key3 = value3 &',
+//     'key4 = value4 &',
+//     'key5 = value5',
+//     '',
+//   ]);
+//   assertEquals(blocks.length, 1);
+//   assertEquals(blocks[0].body, 'key1=value1&key2=value2&key3=value3&key4=value4&key5=value5');
+// });

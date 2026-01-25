@@ -5,6 +5,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    groups:
+      official:
+        patterns:
+        - "actions/*"
 
   - package-ecosystem: devcontainers
     directory: /
