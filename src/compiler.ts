@@ -1,4 +1,16 @@
 #!/usr/bin/env -S deno run --allow-read=. --allow-write=.
+
+/**
+ * Given an .http file on the filesystem, this module can read the file
+ * and write a new .ts file next to it. The written file can be executed
+ * as a normal Deno program
+ *
+ * This module can also be executed directly,
+ * in which case behaves as a compiler CLI.
+ *
+ * @module
+ */
+
 import { parseHttpSyntax } from "./parser.ts";
 import { transformScript } from "./transformer.ts";
 import type { HttpBlock } from "./types.ts";
@@ -34,10 +46,7 @@ export async function compileHttpFile(opts: {
     const ourRepoPath = new URL('..', import.meta.url);
     const targetPath = new URL(opts.outputPath, `file://${Deno.cwd()}/`);
     if (targetPath.toString().startsWith(ourRepoPath.toString())) {
-      importPath =[
-        ...new Array(targetPath.pathname.split('/').length - ourRepoPath.pathname.split('/').length).fill('..'),
-        'src',
-      ].join('/');
+      importPath = '@danopia/http-file';
     }
   }
   importPath ??= import.meta.url

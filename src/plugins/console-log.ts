@@ -1,3 +1,10 @@
+/**
+ * Exports a basic plugin to print results to the console.
+ * This is a default plugin, when no other plugins are specified.
+ *
+ * @module
+ */
+
 import type { PluginRegistration } from "../types.ts";
 
 /** Simple plugin to print results to the console */

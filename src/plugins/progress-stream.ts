@@ -1,3 +1,11 @@
+/**
+ * Exports a module which writes machine-readable execution progress
+ * to stdout in a line-by-line JSON format.
+ * Uses Markdown comments if necessary.
+ *
+ * @module
+ */
+
 import type { PluginRegistration } from "../types.ts";
 
 /**

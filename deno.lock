@@ -35,11 +35,15 @@
     }
   },
   "workspace": {
-    "dependencies": [
-      "jsr:@cloudydeno/opentelemetry@0.11",
-      "jsr:@std/assert@1",
-      "jsr:@std/cli@1",
-      "jsr:@std/streams@1"
-    ]
+    "members": {
+      "src": {
+        "dependencies": [
+          "jsr:@cloudydeno/opentelemetry@0.11",
+          "jsr:@std/assert@1",
+          "jsr:@std/cli@1",
+          "jsr:@std/streams@1"
+        ]
+      }
+    }
   }
 }

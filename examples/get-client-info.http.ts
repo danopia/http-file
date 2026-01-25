@@ -1,9 +1,9 @@
 #!/usr/bin/env -S deno run --allow-env --allow-read=. --allow-net
 // deno-lint-ignore-file no-unused-vars
-import { HttpScript, type Client, wait } from '../src/runtime.ts';
+import { HttpScript, type Client, wait } from '@danopia/http-file/runtime.ts';
 
 const script = new HttpScript("./examples/get-client-info.http");
-script.addPlugin(await import("../src/plugins/console-log.ts"));
+script.addPlugin(await import("@danopia/http-file/plugins/console-log.ts"));
 
 script.addStep({
   name: "Get my IP Address",

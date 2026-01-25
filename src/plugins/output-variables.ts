@@ -1,17 +1,21 @@
 /**
+ * Exports a module which writes machine-readable variable values
+ * to stdout when the execution completes.
+ * Uses Markdown comments if necessary.
+ *
+ * @module
+ */
+
+import type { PluginRegistration } from '../types.ts';
+
+/**
  * Tracks which client.global entries were changed during the script's execution
  * and logs the new values as a JSON object at the end of the script.
  * Helpful to retrieve created resource IDs and such for display or further processing.
  *
  * When loaded alongside a `markdown-log` plugin,
  * the JSON object is encoded as a hidden Markdown comment.
- *
- * @module
 */
-
-import type { PluginRegistration } from '../types.ts';
-
-/** A plugin that logs changed global variables after file execution */
 export const plugin: PluginRegistration = {
   name: 'output-variables',
   create(props) {

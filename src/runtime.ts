@@ -1,3 +1,11 @@
+/**
+ * Utility export which is imported by any generated .ts modules.
+ * Contains APIs that http files expect to have access to.
+ * Not intended for further use by other programs.
+ *
+ * @module
+ */
+
 import { parseArgs } from '@std/cli/parse-args';
 
 import type { HeaderPost, HeaderPre, Client, HttpRequestPre, HttpScriptApi, StepOpts, PluginRegistration } from './types.ts';

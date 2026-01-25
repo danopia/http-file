@@ -1,3 +1,9 @@
+/**
+ * Contains a rudimentary parser for .http file blocks.
+ *
+ * @module
+ */
+
 import { TextLineStream } from "@std/streams/text-line-stream";
 import type { HttpBlock } from "./types.ts";
 

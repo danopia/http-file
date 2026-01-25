@@ -1,4 +1,14 @@
 #!/usr/bin/env -S deno run --allow-read=. --allow-net
+
+/**
+ * Contains routines to read in an .http file and evaluate it in-memory,
+ * without first compiling it into a .ts file.
+ *
+ * Also directly executable as a CLI accepting various parameters.
+ *
+ * @module
+ */
+
 import { parseArgs } from "@std/cli/parse-args";
 
 import { parseHttpSyntax } from "./parser.ts";

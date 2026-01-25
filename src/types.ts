@@ -1,3 +1,10 @@
+/**
+ * Types used by the rest of this library.
+ * Some types describe compatibility with scripts in http files.
+ *
+ * @module
+ */
+
 /** Interface used by generated wrapper code */
 export interface HttpScriptApi {
   // building

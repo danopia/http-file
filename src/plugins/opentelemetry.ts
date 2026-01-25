@@ -19,7 +19,7 @@ import { LogicTracer } from '@cloudydeno/opentelemetry/instrumentation/async.ts'
 import type { Span } from '@cloudydeno/opentelemetry/pkg/api';
 
 import type { PluginRegistration } from '../types.ts';
-import moduleJson from '../../deno.json' with { type: 'json' };
+import moduleJson from '../deno.json' with { type: 'json' };
 
 const fileTracer = new LogicTracer({
   name: 'http.script',
