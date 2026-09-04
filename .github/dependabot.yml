@@ -14,3 +14,12 @@ updates:
     directory: /
     schedule:
       interval: monthly
+
+  - package-ecosystem: deno
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      std:
+        patterns:
+        - "@std/*"

@@ -14,6 +14,10 @@ jobs:
       matrix:
         deno-version:
         - v2.5
+        - v2.6
+        - v2.7
+        - v2.8
+        - v2.9
         - canary
       fail-fast: false # run each branch to completion
 
@@ -25,26 +29,23 @@ jobs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: ${{ matrix.deno-version }}
+        cache: true
 
-    - name: Cache Deno deps
-      uses: actions/cache@v6
-      with:
-        path: ~/.cache/deno
-        key: denodir/${{ matrix.deno-version }}-${{ hashFiles('deno.lock') }}
+    - run: deno install
 
     - name: Run tests
       run: time deno test
 
     - name: Try out examples/get-client-info.http
       run: |
-        src/compiler.ts examples/get-client-info.http
+        deno task compiler examples/get-client-info.http
         deno check examples/get-client-info.http.ts
         examples/get-client-info.http.ts
 
     - name: Compile all examples
       run: |
         find . -name '*.http' -type f \
-        | xargs -n1 src/compiler.ts
+        | xargs -n1 deno task compiler
         deno check examples/*.http.ts
 
     - name: Try main examples directly
@@ -61,13 +62,9 @@ jobs:
 
     steps:
     - uses: denoland/setup-deno@v2
-    - uses: actions/checkout@v7
-
-    - name: Cache Deno deps
-      uses: actions/cache@v6
       with:
-        path: ~/.cache/deno
-        key: denodir-${{ hashFiles('deno.lock') }}
+        cache: true
+    - uses: actions/checkout@v7
 
     - name: Check publish rules
       working-directory: src
@@ -86,13 +83,9 @@ jobs:
 
     steps:
     - uses: denoland/setup-deno@v2
-    - uses: actions/checkout@v7
-
-    - name: Cache Deno deps
-      uses: actions/cache@v6
       with:
-        path: ~/.cache/deno
-        key: denodir-${{ hashFiles('deno.lock') }}
+        cache: true
+    - uses: actions/checkout@v7
 
     - name: Publish now
       working-directory: src

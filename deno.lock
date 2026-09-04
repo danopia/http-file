@@ -1,34 +1,43 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@cloudydeno/opentelemetry@0.11": "0.11.0",
-    "jsr:@std/assert@1": "1.0.14",
+    "jsr:@cloudydeno/opentelemetry@~0.11.1": "0.11.1",
+    "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/bytes@^1.0.6": "1.0.6",
-    "jsr:@std/cli@1": "1.0.22",
-    "jsr:@std/internal@^1.0.10": "1.0.10",
-    "jsr:@std/streams@1": "1.0.12"
+    "jsr:@std/cli@^1.0.32": "1.0.32",
+    "jsr:@std/fmt@^1.0.10": "1.0.10",
+    "jsr:@std/internal@^1.0.12": "1.0.14",
+    "jsr:@std/internal@^1.0.14": "1.0.14",
+    "jsr:@std/streams@^1.1.2": "1.1.2"
   },
   "jsr": {
-    "@cloudydeno/opentelemetry@0.11.0": {
-      "integrity": "a7be5d86697b1e733639b73e16758f469fb104f887280b87792dc4e39100fe09"
+    "@cloudydeno/opentelemetry@0.11.1": {
+      "integrity": "fcf3bec43e13170b40b0a22dc1212dd28b7c0bbd153e6b307275848444a276e2"
     },
-    "@std/assert@1.0.14": {
-      "integrity": "68d0d4a43b365abc927f45a9b85c639ea18a9fab96ad92281e493e4ed84abaa4",
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
-        "jsr:@std/internal"
+        "jsr:@std/internal@^1.0.12"
       ]
     },
     "@std/bytes@1.0.6": {
       "integrity": "f6ac6adbd8ccd99314045f5703e23af0a68d7f7e58364b47d2c7f408aeb5820a"
     },
-    "@std/cli@1.0.22": {
-      "integrity": "50d1e4f87887cb8a8afa29b88505ab5081188f5cad3985460c3b471fa49ff21a"
+    "@std/cli@1.0.32": {
+      "integrity": "188b3a100d6202d64e3f5bd3d799c7fa4f6d77f92cc65eb7f641c1fa0aa92a66",
+      "dependencies": [
+        "jsr:@std/fmt",
+        "jsr:@std/internal@^1.0.14"
+      ]
     },
-    "@std/internal@1.0.10": {
-      "integrity": "e3be62ce42cab0e177c27698e5d9800122f67b766a0bea6ca4867886cbde8cf7"
+    "@std/fmt@1.0.10": {
+      "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
-    "@std/streams@1.0.12": {
-      "integrity": "ae925fa1dc459b1abf5cbaa28cc5c7b0485853af3b2a384b0dc22d86e59dfbf4",
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    },
+    "@std/streams@1.1.2": {
+      "integrity": "0249bf9b78a999f57032ca4d8e7ccaa57579090242640b35ddc948fbb745d3af",
       "dependencies": [
         "jsr:@std/bytes"
       ]
@@ -38,10 +47,10 @@
     "members": {
       "src": {
         "dependencies": [
-          "jsr:@cloudydeno/opentelemetry@0.11",
-          "jsr:@std/assert@1",
-          "jsr:@std/cli@1",
-          "jsr:@std/streams@1"
+          "jsr:@cloudydeno/opentelemetry@~0.11.1",
+          "jsr:@std/assert@^1.0.19",
+          "jsr:@std/cli@^1.0.32",
+          "jsr:@std/streams@^1.1.2"
         ]
       }
     }
