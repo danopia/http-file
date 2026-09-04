@@ -25,12 +25,7 @@ jobs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: ${{ matrix.deno-version }}
-
-    - name: Cache Deno deps
-      uses: actions/cache@v6
-      with:
-        path: ~/.cache/deno
-        key: denodir/${{ matrix.deno-version }}-${{ hashFiles('deno.lock') }}
+        cache: true
 
     - name: Run tests
       run: time deno test
@@ -61,13 +56,9 @@ jobs:
 
     steps:
     - uses: denoland/setup-deno@v2
-    - uses: actions/checkout@v7
-
-    - name: Cache Deno deps
-      uses: actions/cache@v6
       with:
-        path: ~/.cache/deno
-        key: denodir-${{ hashFiles('deno.lock') }}
+        cache: true
+    - uses: actions/checkout@v7
 
     - name: Check publish rules
       working-directory: src
@@ -86,13 +77,9 @@ jobs:
 
     steps:
     - uses: denoland/setup-deno@v2
-    - uses: actions/checkout@v7
-
-    - name: Cache Deno deps
-      uses: actions/cache@v6
       with:
-        path: ~/.cache/deno
-        key: denodir-${{ hashFiles('deno.lock') }}
+        cache: true
+    - uses: actions/checkout@v7
 
     - name: Publish now
       working-directory: src
