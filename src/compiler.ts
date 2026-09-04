@@ -91,7 +91,7 @@ export async function compileHttpFile(opts: {
  */
 export async function* renderHttpScript(
   scriptName: string,
-  blocks: ReadableStream<HttpBlock>,
+  blocks: AsyncIterable<HttpBlock>,
   importPath: string,
   plugins: string[],
 ): AsyncGenerator<string> {
