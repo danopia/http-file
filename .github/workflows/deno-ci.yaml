@@ -18,7 +18,7 @@ jobs:
         - v2.7
         - v2.8
         - v2.9
-        - canary
+        # - canary
       fail-fast: false # run each branch to completion
 
     steps:
