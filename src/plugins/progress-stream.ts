@@ -21,7 +21,12 @@ export const plugin: PluginRegistration = {
 
     // We one-index steps to keep 0 for "before anything",
     // and we also leave a slot at the end to reach when everything is complete.
-    const stepCount = props.script.steps.length+1;
+    const stepCount = props.script.steps
+      // Support for nested scripts by counting child steps
+      .map(step => step.type == 'run'
+        ? step.childScript.steps.length
+        : 1)
+      .reduce((sum, it) => sum + it, 0);
 
     function writeProgress(progress: {
       message: string;

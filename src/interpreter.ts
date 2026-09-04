@@ -65,7 +65,7 @@ export async function interpretHttpFile(opts: {
 
 export async function instantiateHttpScript(
   scriptName: string,
-  blocks: AsyncGenerator<HttpBlock>,
+  blocks: AsyncIterable<HttpBlock>,
   plugins: PluginRegistration[],
 ): Promise<HttpScript> {
 
@@ -77,6 +77,22 @@ export async function instantiateHttpScript(
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 
   for await (const block of blocks) {
+    if (block.method == 'run') {
+      const childPath = new URL(block.url, new URL(scriptName, 'file:///'));
+      await using inputFile = await Deno.open(childPath.pathname.slice(1), { read: true });
+      const childBlocks = parseHttpSyntax(inputFile.readable
+        .pipeThrough(new TextDecoderStream()));
+      const childScript = await instantiateHttpScript(
+        block.url,
+        childBlocks,
+        []);
+      script.addStep({
+        type: 'run',
+        name: block.name,
+        childScript,
+      })
+      continue;
+    }
     script.addStep({
       name: block.name,
       method: block.method,

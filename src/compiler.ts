@@ -38,8 +38,19 @@ export async function compileHttpFile(opts: {
   plugins?: string[] | null;
 }) {
   await using inputFile = await Deno.open(opts.inputPath, { read: true });
-  const blockStream = parseHttpSyntax(inputFile.readable
-    .pipeThrough(new TextDecoderStream()));
+  const additionalFiles = new Set<string>();
+  const blockStream = ReadableStream.from(
+    parseHttpSyntax(inputFile.readable
+      .pipeThrough(new TextDecoderStream())))
+    .pipeThrough(new TransformStream({
+      transform(block, ctlr) {
+        if (block.method == 'run') {
+          const path = new URL(block.url, new URL(opts.inputPath, 'file:///'));
+          additionalFiles.add(path.pathname.slice(1));
+        }
+        ctlr.enqueue(block);
+      },
+    }));
 
   let importPath = opts.importPath;
   if (!importPath) {
@@ -64,6 +75,15 @@ export async function compileHttpFile(opts: {
     .pipeThrough(new TextEncoderStream());
   await Deno.writeFile(opts.outputPath, outputStream, {mode: 0o755});
   console.error(`Wrote ${opts.outputPath}`);
+
+  for (const additionalFile of additionalFiles) {
+    await compileHttpFile({
+      inputPath: additionalFile,
+      outputPath: `${additionalFile}.ts`,
+      importPath: opts.importPath,
+      plugins: opts.plugins,
+    });
+  }
 }
 
 /**
@@ -71,7 +91,7 @@ export async function compileHttpFile(opts: {
  */
 export async function* renderHttpScript(
   scriptName: string,
-  blocks: AsyncGenerator<HttpBlock>,
+  blocks: AsyncIterable<HttpBlock>,
   importPath: string,
   plugins: string[],
 ): AsyncGenerator<string> {
@@ -87,7 +107,19 @@ export async function* renderHttpScript(
     ...plugins.map(x => `script.addPlugin(await import(${JSON.stringify(x.includes('/') ? x : `${importPath}/plugins/${x}.${importExtension}`)}));`),
   ].join('\n')+'\n\n';
 
+  let runId = 1;
   for await (const block of blocks) {
+    if (block.method == 'run') {
+      const scriptSymbol = `childScript${runId++}`;
+      yield `import ${scriptSymbol} from "${JSON.stringify(block.url).slice(1,-1)}.ts";\n`;
+      yield `script.addStep({\n`;
+      yield `  type: "run",\n`;
+      yield `  name: ${JSON.stringify(block.name)},\n`;
+      yield `  childScript: ${scriptSymbol},\n`;
+      yield `});\n\n`;
+      continue;
+    }
+
     yield `script.addStep({\n`;
     yield `  name: ${JSON.stringify(block.name)},\n`;
     yield `  method: ${JSON.stringify(block.method)},\n`;

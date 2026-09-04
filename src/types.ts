@@ -54,7 +54,15 @@ export type HttpBlock = {
   postScript: string;
 };
 
-export type StepOpts = {
+export type StepOpts = RunStepOpts | HttpStepOpts;
+
+export type RunStepOpts = {
+  type: 'run';
+  name: string;
+  childScript: HttpScriptApi;
+}
+export type HttpStepOpts = {
+  type?: 'http';
   name: string;
   method: string;
   url: string;
