@@ -71,6 +71,15 @@ export class HttpClient implements Client {
   }
 
   async performStep(opts: StepOpts) {
+    if (opts.type == 'run') {
+      await this.hooks.runWrapFile(opts.childScript.name, async () => {
+        for (const step of opts.childScript.steps) {
+          await this.performStep(step);
+        }
+      });
+      return;
+    }
+
     this.pendingTests.length = 0;
     await this.hooks.runWrapStep(opts.name, async () => {
       const environment = this.global;
