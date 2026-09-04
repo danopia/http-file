@@ -36,14 +36,14 @@ jobs:
 
     - name: Try out examples/get-client-info.http
       run: |
-        src/compiler.ts examples/get-client-info.http
+        deno task compiler examples/get-client-info.http
         deno check examples/get-client-info.http.ts
         examples/get-client-info.http.ts
 
     - name: Compile all examples
       run: |
         find . -name '*.http' -type f \
-        | xargs -n1 src/compiler.ts
+        | xargs -n1 deno task compiler
         deno check examples/*.http.ts
 
     - name: Try main examples directly
