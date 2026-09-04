@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "compiler": "deno run --config src/deno.json --allow-read=. --allow-write=. @danopia/http-file/compiler.ts"
+    "compiler": "deno run --allow-read=. --allow-write=. @danopia/http-file/compiler.ts"
   },
   "workspace": [
     "examples",
